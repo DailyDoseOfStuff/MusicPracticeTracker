@@ -10,7 +10,9 @@ import SwiftData
 
 struct ContentView: View {
 
-    @State var testText: [String] = ["Task 1", "task 2", "Task 3"]
+    @AppStorage("task1") var task1: String = ""
+    @AppStorage("task2") var task2: String = ""
+    @AppStorage("task3") var task3: String = ""
     
     @Query var logs: [SessionsData]
     
@@ -42,15 +44,26 @@ struct ContentView: View {
                     
                     //For the task list
                     LazyVStack(alignment: .leading, spacing: 12) {
-                        ForEach(testText, id: \.self) { thing in
-                            HStack {
-                                Text("*")
-                                Text("\(thing)")
-                            }
-                            .padding(.horizontal, 20)
-                            .padding(.vertical, 5)
-
+                        HStack {
+                            Text("*")
+                            TextField("Enter task...", text: $task1, axis: .vertical)
                         }
+                        .padding(.horizontal, 20)
+                        .padding(.vertical, 5)
+
+                        HStack {
+                            Text("*")
+                            TextField("Enter task...", text: $task2, axis: .vertical)
+                        }
+                        .padding(.horizontal, 20)
+                        .padding(.vertical, 5)
+
+                        HStack {
+                            Text("*")
+                            TextField("Enter task...", text: $task3, axis: .vertical)
+                        }
+                        .padding(.horizontal, 20)
+                        .padding(.vertical, 5)
                     }
 
                 }
