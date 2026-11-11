@@ -29,6 +29,10 @@ struct ContentView: View {
     var body: some View {
         NavigationStack {
             VStack(alignment: .center, spacing: 12) {
+                
+                Text("Practice Tracker")
+                    .bold()
+                    .font(.largeTitle)
 
                 // A list user can put for 3 most important tasks
                 ZStack(alignment: .center) {
@@ -72,44 +76,65 @@ struct ContentView: View {
                     NavigationLink(destination: LogView()) {
                         ZStack {
                             RoundedRectangle(cornerRadius: 20)
-                                .foregroundStyle(.blue)
+                                .foregroundStyle(.clear)
                             Text("View Logs")
                                 .foregroundStyle(.black)
                         }
                         .frame(maxWidth: .infinity, minHeight: 70)
+                        .glassEffect(
+                            .clear.interactive(),
+                            in: .rect(cornerRadius: 20)
+                        )
                     }
 
                     //Start timer button
                     NavigationLink(destination: TimerView()) {
                         ZStack {
                             RoundedRectangle(cornerRadius: 20)
-                                .foregroundStyle(.blue)
+                                .foregroundStyle(.clear)
                             Text("Timer")
                                 .foregroundStyle(.black)
                         }
                         .frame(maxWidth: .infinity, minHeight: 70)
+                        .glassEffect(
+                            .clear.interactive(),
+                            in: .rect(cornerRadius: 20)
+                        )
                     }
                 }
                 .frame(width: 385)
                 
-                HStack(spacing: 12) {
+                LazyVStack(spacing: 12) {
                     //show total min practiced
                     ZStack {
                         RoundedRectangle(cornerRadius: 20)
-                            .foregroundStyle(.blue)
+                            .foregroundStyle(.thinMaterial)
+                            .glassEffect(
+                                .clear.interactive(),
+                                in: .rect(cornerRadius: 20)
+                            )
                         Text("Minutes practiced: \(totalMinutes)")
                             .foregroundStyle(.black)
                     }
-                    .frame(maxWidth: .infinity, minHeight: 70)
+                    .frame(maxWidth: .infinity, minHeight: 50)
+                    .glassEffect(
+                        .clear.interactive(),
+                        in: .rect(cornerRadius: 20)
+                    )
 
                     //show total sessions
                     ZStack {
                         RoundedRectangle(cornerRadius: 20)
-                            .foregroundStyle(.blue)
+                            .foregroundStyle(.thinMaterial)
+                            .glassEffect(
+                                .clear.interactive(),
+                                in: .rect(cornerRadius: 20)
+                            )
                         Text("Sessions: \(totalSes)")
                             .foregroundStyle(.black)
                     }
-                    .frame(maxWidth: .infinity, minHeight: 70)
+                    .frame(maxWidth: .infinity, minHeight: 50)
+                    
                 }
                 .frame(width: 385)
 

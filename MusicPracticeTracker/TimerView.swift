@@ -163,7 +163,7 @@ struct TimerCountDown: View {
                         dismiss()
                     }
                 } label: {
-                    Text("Stop")
+                    Text("Quit")
                         .font(.title2)
                         .foregroundStyle(.black)
                         .bold()
