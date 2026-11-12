@@ -9,10 +9,23 @@ import SwiftUI
 import SwiftData
 
 struct ContentView: View {
+    
+    
+    func loadTasks() {
+        if let data = UserDefaults.standard.data(forKey: "tasks"),
+            let decoded = try? JSONDecoder().decode([String].self, from: data) {
+            tasks = decoded.isEmpty ? [""] : decoded
+        }
+    }
+    
+    func saveTasks(){
+        if let encoded = try? JSONEncoder().encode(tasks){
+            UserDefaults.standard.set(encoded, forKey: "tasks")
+        }
+    }
 
-    @AppStorage("task1") var task1: String = ""
-    @AppStorage("task2") var task2: String = ""
-    @AppStorage("task3") var task3: String = ""
+    @State private var tasks: [String] = [""]
+    @FocusState var focusedIndex: Int?
     
     @Query var logs: [SessionsData]
     
@@ -34,43 +47,47 @@ struct ContentView: View {
                     .bold()
                     .font(.largeTitle)
 
-                // A list user can put for 3 most important tasks
-                ZStack(alignment: .center) {
-
+                // A list user can put for most important tasks
+                ZStack(alignment: .topLeading) {
                     RoundedRectangle(cornerRadius: 20)
-                        .frame(width: 385, height: 200)
-                        .foregroundStyle(.thinMaterial)
+                        .foregroundStyle(.clear)
                         .overlay(
                             RoundedRectangle(cornerRadius: 20)
                                 .stroke(Color.black, lineWidth: 2)
                         )
 
-                    
-                    //For the task list
-                    LazyVStack(alignment: .leading, spacing: 12) {
-                        HStack {
-                            Text("*")
-                            TextField("Enter task...", text: $task1, axis: .vertical)
+                    ScrollView {
+                        LazyVStack(alignment: .leading, spacing: 12) {
+                            ForEach(tasks.indices, id: \.self) { index in
+                                HStack(alignment: .top) {
+                                    Text("•")
+                                    TextField("enter task...", text: $tasks[index])
+                                        .focused($focusedIndex, equals: index)
+                                        .onSubmit {
+                                            tasks.insert("", at: index + 1)
+                                            focusedIndex = index + 1
+                                            saveTasks()
+                                        }
+                                        .onChange(of: tasks[index]) { _, _ in
+                                            saveTasks()
+                                        }
+                                }
+                            }
                         }
                         .padding(.horizontal, 20)
-                        .padding(.vertical, 5)
-
-                        HStack {
-                            Text("*")
-                            TextField("Enter task...", text: $task2, axis: .vertical)
-                        }
-                        .padding(.horizontal, 20)
-                        .padding(.vertical, 5)
-
-                        HStack {
-                            Text("*")
-                            TextField("Enter task...", text: $task3, axis: .vertical)
-                        }
-                        .padding(.horizontal, 20)
-                        .padding(.vertical, 5)
+                        .padding(.vertical, 10)
                     }
-
+                    .clipShape(RoundedRectangle(cornerRadius: 20))
+                    .onChange(of: focusedIndex) { oldValue, newValue in
+                        guard let old = oldValue, old < tasks.count, tasks[old].isEmpty, tasks.count > 1 else { return }
+                        tasks.remove(at: old)
+                        if let new = newValue, new > old {
+                            focusedIndex = new - 1
+                        }
+                        saveTasks()
+                    }
                 }
+                .frame(width: 385, height: 200)
 
                 HStack(spacing: 12) {
                     NavigationLink(destination: LogView()) {
@@ -150,6 +167,7 @@ struct ContentView: View {
                 )
                 .ignoresSafeArea()
             )
+            .onAppear{ loadTasks() }
         }
     }
 }
