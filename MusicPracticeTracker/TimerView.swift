@@ -8,6 +8,7 @@
 import Combine
 import SwiftData
 import SwiftUI
+import AudioToolbox
 
 //select screen
 struct TimerView: View {
@@ -89,6 +90,82 @@ struct TimerView: View {
         }
     }
 
+}
+
+struct SaveSessionView: View {
+    let elapsedSec: Int
+    let onSave: () -> Void
+
+    @State var tasks: [String] = []
+    @State var selectedTasks: Set<String> = []
+    @State var customNote: String = ""
+
+    @Environment(\.dismiss) var dismiss
+    @Environment(\.modelContext) var context
+
+    var body: some View {
+        NavigationStack {
+            Form {
+                Section("What did you work on?") {
+                    ForEach(tasks.filter { !$0.isEmpty }, id: \.self) { task in
+                        HStack {
+                            Text(task)
+                            Spacer()
+                            if selectedTasks.contains(task) {
+                                Image(systemName: "checkmark").foregroundStyle(.blue)
+                            }
+                        }
+                        .contentShape(Rectangle())
+                        .onTapGesture {
+                            if selectedTasks.contains(task) {
+                                selectedTasks.remove(task)
+                            } else {
+                                selectedTasks.insert(task)
+                            }
+                        }
+                    }
+
+
+                }
+
+                Section("Additional notes (optional)") {
+                    TextField("Anything else to log...", text: $customNote, axis: .vertical)
+                        .lineLimit(3...6)
+                }
+            }
+            .navigationTitle("Session Review")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("Cancel") { dismiss() }
+                }
+                ToolbarItem(placement: .confirmationAction) {
+                    Button("Save") { saveSession() }
+                }
+            }
+            .onAppear { loadTasks() }
+        }
+    }
+
+    func loadTasks() {
+        if let data = UserDefaults.standard.data(forKey: "tasks"),
+           let decoded = try? JSONDecoder().decode([String].self, from: data) {
+            tasks = decoded
+        }
+    }
+
+    func saveSession() {
+        let minutesPracticed = max(1, elapsedSec / 60)
+        var noteParts: [String] = []
+        if !selectedTasks.isEmpty { noteParts.append(selectedTasks.joined(separator: ", ")) }
+        if !customNote.isEmpty { noteParts.append(customNote) }
+        let finalNote = noteParts.isEmpty ? "No notes" : noteParts.joined(separator: "\n")
+
+        context.insert(SessionsData(sesLength: String(minutesPracticed), dateOfSes: Date(), notes: finalNote))
+        try? context.save()
+        onSave()
+        dismiss()
+    }
 }
 
 //button config
@@ -195,35 +272,19 @@ struct TimerCountDown: View {
             } else {
                 isRunning = false
                 save = true
-                //pop-up
-
+                
+                
+                // RUN SOUND HERE
+                for _ in 0..<5 {
+                    AudioServicesPlaySystemSound(1304)
+                }
             }
         }
-        .alert("Session Review", isPresented: $save) {
-
-            //For notes
-            TextField("Log what things you practiced", text: $userInput)
-
-            Button("Save") {
-                let minutesPracticed = max(1, elapsedSec / 60)
-                let saveInput = userInput.isEmpty ? "No notes" : userInput
-
-                let newSessionData = SessionsData(
-                    sesLength: String(minutesPracticed),
-                    dateOfSes: Date(),
-                    notes: saveInput
-                )
-
-                context.insert(newSessionData)
-
-                try? context.save()
-                print(Logs)
-                userInput = ""
+        .sheet(isPresented: $save) {
+            SaveSessionView(elapsedSec: elapsedSec) {
                 elapsedSec = 0
                 dismiss()
-
             }
-            Button("Cancel", role: .cancel) { dismiss() }
         }
 
     }
