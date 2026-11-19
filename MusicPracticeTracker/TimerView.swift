@@ -8,6 +8,7 @@
 import Combine
 import SwiftData
 import SwiftUI
+import AudioToolbox
 
 //select screen
 struct TimerView: View {
@@ -271,8 +272,12 @@ struct TimerCountDown: View {
             } else {
                 isRunning = false
                 save = true
-                //pop-up
-
+                
+                
+                // RUN SOUND HERE
+                for _ in 0..<5 {
+                    AudioServicesPlaySystemSound(1304)
+                }
             }
         }
         .sheet(isPresented: $save) {
